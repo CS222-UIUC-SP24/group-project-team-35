@@ -16,6 +16,8 @@ from youtube_search import YoutubeSearch
 import yt_dlp
 
 import os
+import spotifyTest
+
 
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
@@ -89,6 +91,10 @@ async def get_first_result(search):
     print(results[0])
     return results[0]
 
+@bot.command()
+async def getSongSpotify(artist, song):
+    result = spotifyTest.search(artist, song)
+    print(result)
 
 # Would probably want to hide token later, but should work fine for testing
 bot.run("MTIwOTQwNzQ3MzIwMzgxMDMyNA.Ggoj_F.UNtYsPOJUO2Q1WlrVKp2i_ZW8iETJnuvkIEz0c")
