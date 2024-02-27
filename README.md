@@ -2,5 +2,10 @@
 
 
 Requirements for Discord bot to work: 
-FFMPeg library
-pip installing discord.py, ffmpeg (different from FFMPeg library),and PyNaCL
+FFMPeg library. I put ffmpeg.exe in the folder and that fixed it i guess. Needs ffmpeg.exe to be in the same directory as main
+pip install:
+discord.py
+ffmpeg (different from FFMPeg library)
+PyNaCL
+youtube-search
+yt_dlp
