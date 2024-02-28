@@ -47,12 +47,14 @@ async def play(ctx, *searchTerms):
     songName = "".join(searchTerms[:])
     
     #searches for song with the search terms, and downloads it
-    fileName = await download(songName) 
+    link, fileName = await download(songName) 
     # Get the voice channel of the user
     voice_channel = ctx.author.voice.channel
 
     try:
         # Connect to the voice channel
+
+        await ctx.send(link)
         voice_client = await voice_channel.connect()
 
         # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
@@ -70,6 +72,8 @@ async def play(ctx, *searchTerms):
         print(e)
         await ctx.send("An error occurred while playing the audio.")
 
+
+#shouldn't be called by the user, it's just a bot command for me to test
 @bot.command()
 async def download(songName="creep by radiohead"):
     
@@ -83,7 +87,7 @@ async def download(songName="creep by radiohead"):
             ydl.download([link])
     except Exception as e:
         print(e)
-    return fileName + '.mp3'
+    return link, fileName + '.mp3'
 
 async def get_first_result(search):
     results = YoutubeSearch(search, max_results=10).to_dict()
@@ -95,6 +99,8 @@ async def get_first_result(search):
 async def getSongSpotify(artist, song):
     result = spotifyTest.search(artist, song)
     print(result)
+    
+#command to end playback
 
 # Would probably want to hide token later, but should work fine for testing
 bot.run("MTIwOTQwNzQ3MzIwMzgxMDMyNA.Ggoj_F.UNtYsPOJUO2Q1WlrVKp2i_ZW8iETJnuvkIEz0c")
