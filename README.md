@@ -16,4 +16,4 @@ Jack: Idk how a requirements.txt would work on a non venv (maybe it just works t
 pip install 
 spotipy
 pandas
-async.io
+asyncio

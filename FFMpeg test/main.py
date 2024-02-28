@@ -96,10 +96,10 @@ async def get_first_result(search):
     return results[0]
 
 @bot.command()
-async def getSongSpotify(artist, song):
+async def getSongSpotify(ctx, artist, song):
     result = spotifyTest.search(artist, song)
-    print(result)
-    
+    await ctx.send_message(result)
+
 #command to end playback
 
 # Would probably want to hide token later, but should work fine for testing
