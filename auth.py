@@ -1,7 +1,8 @@
 import spotipy.oauth2 as SpotifyOAuth
 import os
-from dotenv import load_dotenv
 
+# THIS PROBABLY IS UNNECESSARY BECAUSE DOCKER SHOULD HANDLE ENV VARIABLES
+from dotenv import load_dotenv
 load_dotenv()
 
 application_scopes = "streaming" # add other scopes as necessary
