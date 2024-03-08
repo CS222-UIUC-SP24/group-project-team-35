@@ -18,6 +18,8 @@ import yt_dlp
 import os
 import spotifyTest
 
+import json
+
 
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
@@ -35,6 +37,32 @@ yt_opts = {
     
 }
 
+
+
+@bot.command()
+async def searchSpotify(ctx, *searchTerms):
+    # Check if the user is in a voice channel
+
+    search = "".join(searchTerms[:])
+    searchSplit = search.split(",")
+
+    artistName = searchSplit[0]
+    songName = searchSplit[1]
+    
+    spotipySong = await getSongSpotify(artistName, songName)
+    print(spotipySong)
+    await ctx.send(spotipySong['name'] + ' by ' + spotipySong['artists'][0]['name'])
+
+
+@bot.command()
+async def stop(ctx):
+    if (ctx.voice_client):
+        await ctx.guild.voice_client.disconnect() 
+        await ctx.send('Im gone')
+    else: 
+        await ctx.send("Not in a voice channel")
+
+    
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
 @bot.command()
@@ -44,10 +72,14 @@ async def play(ctx, *searchTerms):
         await ctx.send("You need to be in a voice channel to use this command.")
         return
     
-    songName = "".join(searchTerms[:])
+    #serarch for song on spotify, gets full name with artist + song name
+    #fullName = searchSpotify(searchTerms)
+
+    #this should be ok for now
+    fullName = "".join(searchTerms[:])
     
-    #searches for song with the search terms, and downloads it
-    link, fileName = await download(songName) 
+    #searches on youtube with the full name, and downloads it
+    link, fileName = await download(fullName) 
     # Get the voice channel of the user
     voice_channel = ctx.author.voice.channel
 
@@ -96,9 +128,9 @@ async def get_first_result(search):
     return results[0]
 
 @bot.command()
-async def getSongSpotify(ctx, artist, song):
+async def getSongSpotify(artist, song):
     result = spotifyTest.search(artist, song)
-    await ctx.send_message(result)
+    return result['tracks']['items'][0]
 
 #command to end playback
 
