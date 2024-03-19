@@ -20,6 +20,11 @@ import spotifyTest
 
 import json
 
+from collections import namedtuple 
+
+
+from dotenv import load_dotenv
+load_dotenv()
 
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
@@ -38,6 +43,7 @@ yt_opts = {
 }
 
 
+Song = namedtuple('Song', ['fileName', 'name', 'artist'])
 
 @bot.command()
 async def searchSpotify(ctx, *searchTerms):
@@ -62,7 +68,14 @@ async def stop(ctx):
     else: 
         await ctx.send("Not in a voice channel")
 
-    
+queues = {}
+
+#currently no artist, will fill in when spotipy works good
+async def addToQueue(song: Song, guild):
+    if(not guild.id in queues):
+        queues[guild.id] = []
+    queues[guild.id].append(song)
+
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
 @bot.command()
@@ -75,34 +88,43 @@ async def play(ctx, *searchTerms):
     #serarch for song on spotify, gets full name with artist + song name
     #fullName = searchSpotify(searchTerms)
 
-    #this should be ok for now
+    #I'll use this for now, Spotify search thing is really really bad im not sure why
     fullName = "".join(searchTerms[:])
     
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
+    
+    addSong = Song(fileName, fullName, "uh idk (will fill in when using Spotify)")
+    await addToQueue(addSong, ctx.guild)
+    if(len(queues[ctx.guild.id]) > 1):
+        return
     # Get the voice channel of the user
     voice_channel = ctx.author.voice.channel
 
-    try:
-        # Connect to the voice channel
+    while(len(queues[ctx.guild.id]) > 0):
+        print("trying my best to play", len(queues[ctx.guild.id]))
+        try:
+            # Connect to the voice channel
+            nextSong = queues[ctx.guild.id][0]
 
-        await ctx.send(link)
-        voice_client = await voice_channel.connect()
+            voice_client = await voice_channel.connect()
 
-        # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
-        audio_source = FFmpegPCMAudio(executable = 'ffmpeg.exe',source = fileName)
-        voice_client.play(audio_source)
+            # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
+            audio_source = FFmpegPCMAudio(executable = 'ffmpeg.exe',source = nextSong.fileName)
+            voice_client.play(audio_source)
 
-        # Wait for the audio to finish playing or everyone else to leave, check every 1 second
-        while voice_client.is_playing() and len(voice_channel.members) > 1:
-            await asyncio.sleep(1)
-        # Disconnect from the voice channel after the audio finishes playing. 
-        await voice_client.disconnect()
-        os.remove(fileName)
+            # Wait for the audio to finish playing or everyone else to leave, check every 1 second
+            while voice_client.is_playing() and len(voice_channel.members) > 1:
+                await asyncio.sleep(1)
+            # Disconnect from the voice channel after the audio finishes playing. 
+            await voice_client.disconnect()
+            os.remove(nextSong.fileName)
+            queues[ctx.guild.id].pop(0)
+        except Exception as e:
+            print(e)
+            await ctx.send("An error occurred while playing the audio.")
+    
 
-    except Exception as e:
-        print(e)
-        await ctx.send("An error occurred while playing the audio.")
 
 
 #shouldn't be called by the user, it's just a bot command for me to test
@@ -130,9 +152,10 @@ async def get_first_result(search):
 @bot.command()
 async def getSongSpotify(artist, song):
     result = spotifyTest.search(artist, song)
+    print(result)
     return result['tracks']['items'][0]
 
 #command to end playback
 
 # Would probably want to hide token later, but should work fine for testing
-bot.run("MTIwOTQwNzQ3MzIwMzgxMDMyNA.Ggoj_F.UNtYsPOJUO2Q1WlrVKp2i_ZW8iETJnuvkIEz0c")
+bot.run(os.getenv("DISCORD_TOKEN"))

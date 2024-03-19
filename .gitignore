@@ -3,3 +3,4 @@ FFMpeg test/ffmpeg.exe
 keys.env
 songs/
 __pycache__
+FFMpeg test/.env
