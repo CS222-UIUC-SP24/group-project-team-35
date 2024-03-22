@@ -25,7 +25,7 @@ def clearDict():
 
 def search(artist_name, song):
     query = f"artist:{artist_name} track:{song}" # using f string to format the query properly for the web API
-    result = sp.search(q= query, type = ["track"], limit = 1) # returns the first result of the song lookup, can be changed by adjusting the limit variable
+    result = sp.search(q= query, type = ["track"], limit = 5) # returns the first result of the song lookup, can be changed by adjusting the limit variable
     print(result)
     SongDict[song] = result
     return result

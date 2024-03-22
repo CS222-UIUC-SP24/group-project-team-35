@@ -55,6 +55,7 @@ async def searchSpotify(ctx, *searchTerms):
     artistName = searchSplit[0]
     songName = searchSplit[1]
     
+    #change to an array of multiple songs, let the user pick
     spotipySong = await getSongSpotify(artistName, songName)
     print(spotipySong)
     await ctx.send(spotipySong['name'] + ' by ' + spotipySong['artists'][0]['name'])
@@ -144,7 +145,7 @@ async def download(songName="creep by radiohead"):
     return link, fileName + '.mp3'
 
 async def get_first_result(search):
-    results = YoutubeSearch(search, max_results=10).to_dict()
+    results = YoutubeSearch(search, max_results=1).to_dict()
 
     print(results[0])
     return results[0]
