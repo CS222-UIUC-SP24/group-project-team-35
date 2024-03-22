@@ -3,17 +3,19 @@ import spotipy
 import pandas as pd
 import asyncio
 from spotipy.oauth2 import SpotifyClientCredentials
+
+from dotenv import load_dotenv
+load_dotenv()
 import os
 from dotenv import load_dotenv
 
 load_dotenv('keys.env')
 
+
+
 client_id = '06e96c265aed4f81b22f190fda0046d5'
-client_secret = os.getenv('SPOTIPY_CLIENT_SECRET')
-print("this is the secret")
-print(os.environ)
-print(client_secret)
-client = SpotifyClientCredentials(client_id, client_secret)
+client_secret = os.environ.get("SPOTIPY_CLIENT_SECRET")
+client = SpotifyClientCredentials(client_id=client_id, client_secret=client_secret)
 sp = spotipy.Spotify(client_credentials_manager=client)
 
 SongDict = {}
@@ -26,7 +28,7 @@ def clearDict():
 
 def search(artist_name, song):
     query = f"artist:{artist_name} track:{song}" # using f string to format the query properly for the web API
-    result = sp.search(q= query, limit = 1, type='track') # returns the first result of the song lookup, can be changed by adjusting the limit variable
+    result = sp.search(q= query, type = ["track"], limit = 5) # returns the first result of the song lookup, can be changed by adjusting the limit variable
     print(result)
     SongDict[song] = result
     return result
