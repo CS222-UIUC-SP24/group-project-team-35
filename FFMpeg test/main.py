@@ -43,22 +43,54 @@ yt_opts = {
 }
 
 
-Song = namedtuple('Song', ['fileName', 'name', 'artist'])
+
 
 @bot.command()
 async def searchSpotify(ctx, *searchTerms):
     # Check if the user is in a voice channel
 
-    search = "".join(searchTerms[:])
+    search = " ".join(searchTerms[:])
     searchSplit = search.split(",")
 
-    artistName = searchSplit[0]
-    songName = searchSplit[1]
+    songName = searchSplit[0]
+    songName = songName.strip()
+    artistName = ""
+    if(len(searchSplit) > 1):
+        artistName = searchSplit[1]
+        artistName = artistName.strip()
     
     #change to an array of multiple songs, let the user pick
-    spotipySong = await getSongSpotify(artistName, songName)
-    print(spotipySong)
-    await ctx.send(spotipySong['name'] + ' by ' + spotipySong['artists'][0]['name'])
+    spotipySongs = await getSongsSpotify(artistName, songName)
+    songOptions = []
+    for song in spotipySongs:
+        print(song)
+        await ctx.send(song['name'] + ' by ' + song['artists'][0]['name'])
+        songOptions.append(song['name'] + ' by ' + song['artists'][0]['name'])
+    #could add to database here. would be helpful, while I still have the spotipy stuff
+    await ctx.send("Choose a song!", view = MyView(songOptions))
+
+class MyView(discord.ui.View):
+    
+    def __init__(self, songs):
+        count = 0
+        
+        super().__init__() 
+        select = discord.ui.Select()
+        
+        for song in songs:
+            select.add_option(
+                label = song
+            )
+        self.add_item(select)
+        #song will be a string
+        
+
+    
+
+    async def select_callback(self, interaction, select): # the function called when the user is done selecting options
+        await interaction.channel.send(f"Awesome! I like {select.values[0]} too!")
+
+
 
 
 @bot.command()
@@ -71,8 +103,10 @@ async def stop(ctx):
 
 queues = {}
 
+
+SongFile = namedtuple('SongFile', ['fileName', 'name', 'artist'])
 #currently no artist, will fill in when spotipy works good
-async def addToQueue(song: Song, guild):
+async def addToQueue(song: SongFile, guild):
     if(not guild.id in queues):
         queues[guild.id] = []
     queues[guild.id].append(song)
@@ -95,8 +129,10 @@ async def play(ctx, *searchTerms):
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
     
-    addSong = Song(fileName, fullName, "uh idk (will fill in when using Spotify)")
+    addSong = SongFile(fileName, fullName, "author defualt")
+
     await addToQueue(addSong, ctx.guild)
+
     if(len(queues[ctx.guild.id]) > 1):
         return
     # Get the voice channel of the user
@@ -107,7 +143,9 @@ async def play(ctx, *searchTerms):
         try:
             # Connect to the voice channel
             nextSong = queues[ctx.guild.id][0]
-
+            
+            #at this point, I'd probably make a call to add this song to the database
+            
             voice_client = await voice_channel.connect()
 
             # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
@@ -150,11 +188,16 @@ async def get_first_result(search):
     print(results[0])
     return results[0]
 
+
+
+
+
+
 @bot.command()
-async def getSongSpotify(artist, song):
+async def getSongsSpotify(artist, song):
     result = spotifyTest.search(artist, song)
     print(result)
-    return result['tracks']['items'][0]
+    return result['tracks']['items']
 
 #command to end playback
 
