@@ -127,7 +127,7 @@ async def play(ctx, *searchTerms):
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
     
-    addSong = SongFile(fileName, fullName, "author defualt")
+    addSong = SongFile(fileName, fullName, "Default Author")
 
     await addToQueue(addSong, ctx.guild)
 
@@ -161,7 +161,19 @@ async def play(ctx, *searchTerms):
             print(e)
             await ctx.send("An error occurred while playing the audio.")
     
-
+@bot.command()
+async def queue(ctx):
+    listMsg = "```"
+    listMsg += "---------Now Playing----------- \n"
+    listMsg += serverQueue[i].name + " - " + serverQueue[i].artist + "\n"
+    listMsg += "-------------------------------\n"
+    serverQueue = queues[ctx.guild.id]
+    for i in range(1, min(10, len(serverQueue))):
+        listMsg += str(i) + ". " + serverQueue[i].name + " - " + serverQueue[i].artist
+        listMsg += "\n"
+    listMsg += "```"
+    await ctx.send(listMsg)
+        
 
 
 #shouldn't be called by the user, it's just a bot command for me to test
