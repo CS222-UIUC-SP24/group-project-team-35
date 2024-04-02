@@ -46,7 +46,7 @@ yt_opts = {
 
 
 @bot.command()
-async def searchSpotify(ctx, *searchTerms):
+async def playSpotify(ctx, *searchTerms):
     # Check if the user is in a voice channel
 
     search = " ".join(searchTerms[:])
@@ -66,31 +66,30 @@ async def searchSpotify(ctx, *searchTerms):
         print(song)
         await ctx.send(song['name'] + ' by ' + song['artists'][0]['name'])
         songOptions.append(song['name'] + ' by ' + song['artists'][0]['name'])
+    
+
+    embed = discord.Embed(title="Which song is it?", description="Chooose")
+    select = discord.ui.Select(
+        placeholder="Select a song"
+    )
+    count = 0
+    for song in songOptions:
+        
+        count += 1
+        select.add_option(
+            label = str(count) + ". " + song
+        )
+    
+    async def callback(interaction): # the function called when the user is done selecting options
+            await interaction.response.send_message(f"Ok you selected {(select.values[0])[3:]}!")
+            await play(ctx, select.values[0][3:])
+
+    select.callback = callback
+    view = discord.ui.View()
+    view.add_item(select)
+
     #could add to database here. would be helpful, while I still have the spotipy stuff
-    await ctx.send("Choose a song!", view = MyView(songOptions))
-
-class MyView(discord.ui.View):
-    
-    def __init__(self, songs):
-        count = 0
-        
-        super().__init__() 
-        select = discord.ui.Select()
-        
-        for song in songs:
-            select.add_option(
-                label = song
-            )
-        self.add_item(select)
-        #song will be a string
-        
-
-    
-
-    async def select_callback(self, interaction, select): # the function called when the user is done selecting options
-        await interaction.channel.send(f"Awesome! I like {select.values[0]} too!")
-
-
+    await ctx.send("Choose a song!", view = view, embed = embed)
 
 
 @bot.command()
@@ -111,6 +110,7 @@ async def addToQueue(song: SongFile, guild):
         queues[guild.id] = []
     queues[guild.id].append(song)
 
+
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
 @bot.command()
@@ -121,8 +121,6 @@ async def play(ctx, *searchTerms):
         return
     
     #serarch for song on spotify, gets full name with artist + song name
-    #fullName = searchSpotify(searchTerms)
-
     #I'll use this for now, Spotify search thing is really really bad im not sure why
     fullName = "".join(searchTerms[:])
     
