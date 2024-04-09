@@ -64,9 +64,8 @@ async def playSpotify(ctx, *searchTerms):
     songOptions = []
     for song in spotipySongs:
         print(song)
-        await ctx.send(song['name'] + ' by ' + song['artists'][0]['name'])
         songOptions.append(song['name'] + ' by ' + song['artists'][0]['name'])
-    
+
 
     embed = discord.Embed(title="Which song is it?", description="Chooose")
     select = discord.ui.Select(
@@ -82,7 +81,10 @@ async def playSpotify(ctx, *searchTerms):
     
     async def callback(interaction): # the function called when the user is done selecting options
             await interaction.response.send_message(f"Ok you selected {(select.values[0])[3:]}!")
-            await play(ctx, select.values[0][3:])
+            songChoiceIndex = int(select.values[0][0]) - 1
+            songChoice = spotipySongs[songChoiceIndex]
+            song = songChoice['name'] + ', ' + songChoice['artists'][0]['name']
+            await play(ctx, song)
 
     select.callback = callback
     view = discord.ui.View()
@@ -111,6 +113,17 @@ async def addToQueue(song: SongFile, guild):
     queues[guild.id].append(song)
 
 
+@bot.command()
+async def remove(ctx, queueN):
+    queueNumber = int(queueN)
+    serverQueue = queues[ctx.guild.id]
+
+    deleteSong(serverQueue[queueNumber])
+    serverQueue.pop(queueNumber)
+
+async def deleteSong(song: SongFile):
+    os.remove(song.fileName)
+
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
 @bot.command()
@@ -122,7 +135,7 @@ async def play(ctx, *searchTerms):
     
     #serarch for song on spotify, gets full name with artist + song name
     #I'll use this for now, Spotify search thing is really really bad im not sure why
-    fullName = "".join(searchTerms[:])
+    fullName = " ".join(searchTerms[:])
     
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
@@ -163,15 +176,16 @@ async def play(ctx, *searchTerms):
     
 @bot.command()
 async def queue(ctx):
+    
+    serverQueue = queues[ctx.guild.id]
     listMsg = "```"
     listMsg += "---------Now Playing----------- \n"
-    listMsg += serverQueue[i].name + " - " + serverQueue[i].artist + "\n"
+    listMsg += serverQueue[0].name + " - " + serverQueue[0].artist + "\n"
     listMsg += "-------------------------------\n"
-    serverQueue = queues[ctx.guild.id]
     for i in range(1, min(10, len(serverQueue))):
         listMsg += str(i) + ". " + serverQueue[i].name + " - " + serverQueue[i].artist
         listMsg += "\n"
-    listMsg += "```"
+    listMsg += "```"    
     await ctx.send(listMsg)
         
 
