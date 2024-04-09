@@ -43,22 +43,55 @@ yt_opts = {
 }
 
 
-Song = namedtuple('Song', ['fileName', 'name', 'artist'])
+
 
 @bot.command()
-async def searchSpotify(ctx, *searchTerms):
+async def playSpotify(ctx, *searchTerms):
     # Check if the user is in a voice channel
 
-    search = "".join(searchTerms[:])
+    search = " ".join(searchTerms[:])
     searchSplit = search.split(",")
 
-    artistName = searchSplit[0]
-    songName = searchSplit[1]
+    songName = searchSplit[0]
+    songName = songName.strip()
+    artistName = ""
+    if(len(searchSplit) > 1):
+        artistName = searchSplit[1]
+        artistName = artistName.strip()
     
     #change to an array of multiple songs, let the user pick
-    spotipySong = await getSongSpotify(artistName, songName)
-    print(spotipySong)
-    await ctx.send(spotipySong['name'] + ' by ' + spotipySong['artists'][0]['name'])
+    spotipySongs = await getSongsSpotify(artistName, songName)
+    songOptions = []
+    for song in spotipySongs:
+        print(song)
+        songOptions.append(song['name'] + ' by ' + song['artists'][0]['name'])
+
+
+    embed = discord.Embed(title="Which song is it?", description="Chooose")
+    select = discord.ui.Select(
+        placeholder="Select a song"
+    )
+    count = 0
+    for song in songOptions:
+        
+        count += 1
+        select.add_option(
+            label = str(count) + ". " + song
+        )
+    
+    async def callback(interaction): # the function called when the user is done selecting options
+            await interaction.response.send_message(f"Ok you selected {(select.values[0])[3:]}!")
+            songChoiceIndex = int(select.values[0][0]) - 1
+            songChoice = spotipySongs[songChoiceIndex]
+            song = songChoice['name'] + ', ' + songChoice['artists'][0]['name']
+            await play(ctx, song)
+
+    select.callback = callback
+    view = discord.ui.View()
+    view.add_item(select)
+
+    #could add to database here. would be helpful, while I still have the spotipy stuff
+    await ctx.send("Choose a song!", view = view, embed = embed)
 
 
 @bot.command()
@@ -71,11 +104,25 @@ async def stop(ctx):
 
 queues = {}
 
+
+SongFile = namedtuple('SongFile', ['fileName', 'name', 'artist'])
 #currently no artist, will fill in when spotipy works good
-async def addToQueue(song: Song, guild):
+async def addToQueue(song: SongFile, guild):
     if(not guild.id in queues):
         queues[guild.id] = []
     queues[guild.id].append(song)
+
+
+@bot.command()
+async def remove(ctx, queueN):
+    queueNumber = int(queueN)
+    serverQueue = queues[ctx.guild.id]
+
+    deleteSong(serverQueue[queueNumber])
+    serverQueue.pop(queueNumber)
+
+async def deleteSong(song: SongFile):
+    os.remove(song.fileName)
 
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
@@ -87,16 +134,16 @@ async def play(ctx, *searchTerms):
         return
     
     #serarch for song on spotify, gets full name with artist + song name
-    #fullName = searchSpotify(searchTerms)
-
     #I'll use this for now, Spotify search thing is really really bad im not sure why
-    fullName = "".join(searchTerms[:])
+    fullName = " ".join(searchTerms[:])
     
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
     
-    addSong = Song(fileName, fullName, "uh idk (will fill in when using Spotify)")
+    addSong = SongFile(fileName, fullName, "Default Author")
+
     await addToQueue(addSong, ctx.guild)
+
     if(len(queues[ctx.guild.id]) > 1):
         return
     # Get the voice channel of the user
@@ -107,7 +154,9 @@ async def play(ctx, *searchTerms):
         try:
             # Connect to the voice channel
             nextSong = queues[ctx.guild.id][0]
-
+            
+            #at this point, I'd probably make a call to add this song to the database
+            
             voice_client = await voice_channel.connect()
 
             # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
@@ -125,7 +174,20 @@ async def play(ctx, *searchTerms):
             print(e)
             await ctx.send("An error occurred while playing the audio.")
     
-
+@bot.command()
+async def queue(ctx):
+    
+    serverQueue = queues[ctx.guild.id]
+    listMsg = "```"
+    listMsg += "---------Now Playing----------- \n"
+    listMsg += serverQueue[0].name + " - " + serverQueue[0].artist + "\n"
+    listMsg += "-------------------------------\n"
+    for i in range(1, min(10, len(serverQueue))):
+        listMsg += str(i) + ". " + serverQueue[i].name + " - " + serverQueue[i].artist
+        listMsg += "\n"
+    listMsg += "```"    
+    await ctx.send(listMsg)
+        
 
 
 #shouldn't be called by the user, it's just a bot command for me to test
@@ -150,11 +212,16 @@ async def get_first_result(search):
     print(results[0])
     return results[0]
 
+
+
+
+
+
 @bot.command()
-async def getSongSpotify(artist, song):
+async def getSongsSpotify(artist, song):
     result = spotifyTest.search(artist, song)
     print(result)
-    return result['tracks']['items'][0]
+    return result['tracks']['items']
 
 #command to end playback
 
