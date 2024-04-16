@@ -100,6 +100,8 @@ async def stop(ctx):
         await ctx.send('Im gone')
     else: 
         await ctx.send("Not in a voice channel")
+    for i in range(len(queues[ctx.guild.id])):
+        remove(ctx, 0)
 
 queues = {}
 
