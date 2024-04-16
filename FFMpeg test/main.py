@@ -46,10 +46,9 @@ yt_opts = {
 
 
 @bot.command()
-async def playSpotify(ctx, *searchTerms):
+async def playSpotify(ctx, *, search:str):
     # Check if the user is in a voice channel
 
-    search = " ".join(searchTerms[:])
     searchSplit = search.split(",")
 
     songName = searchSplit[0]
@@ -127,7 +126,7 @@ async def deleteSong(song: SongFile):
 #in the final implementation, should probably first search for the song on Spotify and show it to the user, so they can choose it. 
 #It'll then search by the proper name on Spotify
 @bot.command()
-async def play(ctx, *searchTerms):
+async def play(ctx, *, search):
     # Check if the user is in a voice channel
     if ctx.author.voice is None:
         await ctx.send("You need to be in a voice channel to use this command.")
@@ -135,7 +134,7 @@ async def play(ctx, *searchTerms):
     
     #serarch for song on spotify, gets full name with artist + song name
     #I'll use this for now, Spotify search thing is really really bad im not sure why
-    fullName = " ".join(searchTerms[:])
+    fullName = search
     
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
