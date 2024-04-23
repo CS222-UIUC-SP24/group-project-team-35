@@ -73,7 +73,21 @@ def retrieve_data(cursor, table_name):
         print(f"An error occurred: {e}")
         return []
 
+import sqlite3
 
+def retrieve_entry(cursor, table_name, column_name, entry_name):
+    query = f"SELECT * FROM {table_name} WHERE {column_name} = ?"
+    try:
+        cursor.execute(query, (entry_name,))
+        return cursor.fetchall()
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        return []
+
+# Example usage:
+# Assuming 'conn' is your sqlite3 connection object,
+# and 'cursor' is created by conn.cursor()
+# retrieve_entry(cursor, 'songs', 'song', 'Imagine')
 
 def add_column(cursor,table_name, column_name, column_type):
     cursor.execute(f"ALTER TABLE {table_name} ADD {column_name} {column_type}")
