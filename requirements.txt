@@ -1,0 +1,7 @@
+discord
+youtube_search
+yt_dlp
+python-dotenv
+spotipy
+sqlite3-0611
+pandas
