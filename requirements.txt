@@ -1,7 +1,7 @@
 discord
 youtube_search
 yt_dlp
-dotenv
+python-dotenv
 spotipy
 sqlite3
 pandas
