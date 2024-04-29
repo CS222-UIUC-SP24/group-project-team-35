@@ -18,10 +18,12 @@ Index 1: The name of the column
 Index 2: Data type of the column
 """
 def create_table(cursor, table_name, columns):
+    # Construct the column definitions for the SQL statement
+    column_definitions = ', '.join([f"{name} {data_type}" for name, data_type in columns])
+    
     try:
-        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ()")
-        for pairs in columns:
-            cursor.execute(f"ALTER TABLE {table_name} ADD {pairs[0]} {pairs[1]}")
+        # Create the table with all column definitions included
+        cursor.execute(f"CREATE TABLE IF NOT EXISTS {table_name} ({column_definitions})")
     except sqlite3.Error as e:
         print(f"An error occurred: {e}")
 
