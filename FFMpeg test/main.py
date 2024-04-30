@@ -24,10 +24,17 @@ from collections import namedtuple
 
 import shutil
 
+import sqlite3
+import Music_Database
+
 
 from dotenv import load_dotenv
 load_dotenv()
 
+connection = sqlite3.connect(os.getenv("DATA_PATH"))
+c = connection.cursor()
+columns = [("Artist", "Text"), ("Song Name", "Text")]
+Music_Database.create_table(c, "Songs", columns)
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
 bot = commands.Bot(command_prefix='!', intents = Intents.all())
@@ -51,8 +58,9 @@ async def on_ready():
     
     os.makedirs("songs")
 
-
-@bot.command()
+@bot.command(
+       help = "Plays from spotify. Search by song name and artist, separated by a comma" 
+)
 async def playSpotify(ctx, *, search:str):
     # Check if the user is in a voice channel
 
@@ -89,18 +97,21 @@ async def playSpotify(ctx, *, search:str):
             await interaction.response.send_message(f"Ok you selected {(select.values[0])[3:]}!")
             songChoiceIndex = int(select.values[0][0]) - 1
             songChoice = spotipySongs[songChoiceIndex]
-            song = songChoice['name'] + ', ' + songChoice['artists'][0]['name']
-            await play(ctx, song)
-
+            await play(ctx, songChoice['name'], songChoice['artists'][0]['name'])
+            
+            #could add to database here. would be helpful, while I still have the spotipy stuff
+    
     select.callback = callback
     view = discord.ui.View()
     view.add_item(select)
 
-    #could add to database here. would be helpful, while I still have the spotipy stuff
+    
     await ctx.send("Choose a song!", view = view, embed = embed)
 
 
-@bot.command()
+@bot.command(
+       help = "Stops playing and clears the queue" 
+)
 async def stop(ctx):
     if (ctx.voice_client):
         await ctx.guild.voice_client.disconnect() 
@@ -121,7 +132,9 @@ async def addToQueue(song: SongFile, guild):
     queues[guild.id].append(song)
 
 
-@bot.command()
+@bot.command(
+        help = "Remove the i-th song from the queue."
+)
 async def remove(ctx, queueN):
     queueNumber = int(queueN)
     serverQueue = queues[ctx.guild.id]
@@ -134,12 +147,14 @@ async def deleteSong(song: SongFile):
 
 
 
-@bot.command()
+@bot.command(
+        help = "Searches youtube directly."
+)
 async def playYT(ctx, *, search):
-    await   play(ctx, search)
+    await   play(ctx, search, "")
     
     
-async def play(ctx, search):
+async def play(ctx, name, author):
     # Check if the user is in a voice channel
     if ctx.author.voice is None:
         await ctx.send("You need to be in a voice channel to use this command.")
@@ -147,12 +162,12 @@ async def play(ctx, search):
     
     #serarch for song on spotify, gets full name with artist + song name
     #I'll use this for now, Spotify search thing is really really bad im not sure why
-    fullName = search
+    fullName = name + ', ' + author
     
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
     
-    addSong = SongFile(fileName, fullName, "Default Author")
+    addSong = SongFile(fileName, name, author)
 
     await addToQueue(addSong, ctx.guild)
 
@@ -168,7 +183,9 @@ async def play(ctx, search):
             nextSong = queues[ctx.guild.id][0]
             
             #at this point, I'd probably make a call to add this song to the database
-            
+            Music_Database.insert_row(c, "Songs", (nextSong.artist,  nextSong.name))
+            print("The song is:", nextSong.artist, nextSong.name)
+            connection.commit()
             voice_client = await voice_channel.connect()
 
             # Play the audio file. Had to set executable to the path, wasn't recognizign for some reason. Weird
@@ -179,7 +196,7 @@ async def play(ctx, search):
             while voice_client.is_playing() and len(voice_channel.members) > 1:
                 await asyncio.sleep(1)
             # Disconnect from the voice channel after the audio finishes playing. 
-            voice_client.disconnect()
+            await voice_client.disconnect()
             os.remove(nextSong.fileName)
             queues[ctx.guild.id].pop(0)
             
@@ -187,7 +204,9 @@ async def play(ctx, search):
             print(e)
             await ctx.send("An error occurred while playing the audio.")
     
-@bot.command()
+@bot.command(
+        help = "Shows the songs in the queue"
+)
 async def queue(ctx):
     
     serverQueue = queues[ctx.guild.id]
@@ -226,7 +245,7 @@ def slugify(value, allow_unicode = False):
 
 
 #shouldn't be called by the user, it's just a bot command for me to test
-@bot.command()
+@bot.command(help = "Test command")
 async def download(songName="creep by radiohead"):
     
     song = await get_first_result(songName)
@@ -249,11 +268,6 @@ async def get_first_result(search):
     return results[0]
 
 
-
-
-
-
-@bot.command()
 async def getSongsSpotify(artist, song):
     result = spotifyTest.search(artist, song)
     print(result)
