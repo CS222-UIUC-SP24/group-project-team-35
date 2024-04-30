@@ -54,12 +54,15 @@ def insert_array_row(cursor, table_name, array):
 
 
 def insert_row(cursor, table_name, row_tuple):
+    cursor.execute(f"PRAGMA table_info({table_name})")
+    columns = [row[1] for row in cursor.fetchall()]  # Column names are in the second element
+
+    placeholders = ', '.join('?' * len(columns))  # One placeholder for each column
     try:
-        cursor.execute(f"INSERT INTO {table_name} VALUES {row_tuple}")
-    except sqlite3.IntegrityError as e:
-        print(f"Integrity Error: {e}")
-    except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
+        # Execute the insert statement with the provided row values
+        cursor.execute(f"INSERT INTO {table_name} VALUES ({placeholders})", row_tuple)
+    except Exception as e:  # Broad exception to catch any error
+        print(f"Error occurred: {e}")
 
 def delete_row(cursor, table_name, column_name, column_value):
     try:
