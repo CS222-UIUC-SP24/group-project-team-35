@@ -76,9 +76,17 @@ async def playSpotify(ctx, *, search:str):
     #change to an array of multiple songs, let the user pick
     spotipySongs = await getSongsSpotify(artistName, songName)
     songOptions = []
+    if(len(spotipySongs) == 0):
+        await ctx.send("no results")
+        return
     for song in spotipySongs:
         print(song)
-        songOptions.append(song['name'] + ' by ' + song['artists'][0]['name'])
+        name = song['name']
+        artist = song['artists'][0]['name']
+        nameAuthor = (name[:70] + '..') if len(name) > 70 else name
+        nameAuthor += "-"
+        nameAuthor += (artist[:20] + '..') if len(artist) > 20 else artist
+        songOptions.append(nameAuthor)
 
 
     embed = discord.Embed(title="Which song is it?", description="Chooose")
