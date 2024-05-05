@@ -34,7 +34,8 @@ load_dotenv()
 connection = sqlite3.connect(os.getenv("DATA_PATH"))
 c = connection.cursor()
 columns = [("Artist", "Text"), ("Song Name", "Text")]
-Music_Database.create_table(c, "Songs", columns)
+if(not os.path.isfile(os.getenv("DATAPATH"))): 
+    Music_Database.create_table(c, "Songs", columns)
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
 bot = commands.Bot(command_prefix='!', intents = Intents.all())
