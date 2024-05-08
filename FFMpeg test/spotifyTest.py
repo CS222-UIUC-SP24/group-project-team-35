@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 from dotenv import load_dotenv
-
+import sqlite3
+from collections import defaultdict
 load_dotenv('keys.env')
 
 
@@ -84,6 +85,35 @@ def recursivePlaylistComparison(firstPlaylist, secondPlaylist, playListList, use
     """in here we can add functionality to either reccomend playlists progresivelly (call playlist.getRecommendations() every time the function recurses) or
     call at the end of the function when recursion finishes."""
 
+
+
+def suggest():
+    connection = sqlite3.connect(os.getenv("DATA_PATH"))
+    c = connection.cursor()
+    rows = c.execute('SELECT * FROM Songs')
+    artists = defaultdict(int)
+    tracks = defaultdict(int)
+    
+    for song in rows:
+        artists[song[0]] += 1
+        tracks[song[1]] += 1
+        
+    
+    """for song in rows:
+        if song[0] not in artists:
+            artists.append(song[0])
+        if song[1] not in tracks:
+            tracks.append(song[1])"""
+
+    for artist, count in artists.items():
+        print(f"{artist}: {count}")
+    for track, count in tracks.items():
+        print(f"{track}: {count}")
+    connection.close()
+    
+
+
+suggest()
 
 
 

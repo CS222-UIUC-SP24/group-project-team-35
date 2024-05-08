@@ -82,6 +82,8 @@ async def playSpotify(ctx, *, search:str):
         return
     for song in spotipySongs:
         print(song)
+        #trackID = song['']
+        #artistID = song['']
         name = song['name']
         artist = song['artists'][0]['name']
         nameAuthor = (name[:70] + '..') if len(name) > 70 else name
