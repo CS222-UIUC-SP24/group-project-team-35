@@ -34,8 +34,7 @@ load_dotenv()
 connection = sqlite3.connect(os.getenv("DATA_PATH"))
 c = connection.cursor()
 columns = [("Artist", "Text"), ("Song Name", "Text")]
-if(not os.path.isfile(os.getenv("DATAPATH"))): 
-    Music_Database.create_table(c, "Songs", columns)
+Music_Database.create_table(c, "Songs", columns)
 
 # Create an instance of a bot. Has intents to do everything for now, just to test
 bot = commands.Bot(command_prefix='!', intents = Intents.all())
@@ -58,6 +57,17 @@ async def on_ready():
     shutil.rmtree("songs")
     
     os.makedirs("songs")
+
+
+@bot.command(
+    help = "Suggest"
+)
+async def dj(ctx):
+    print("do dj stuff")
+    #this is something like how it's gonna work
+    #suggestedSongs = spotifyTest.getSuggestions()
+    #for song in suggestedSongs:
+    #    await play(ctx, song['name'], song['artists'][0]['name'])
 
 @bot.command(
        help = "Plays from spotify. Search by song name and artist, separated by a comma" 
@@ -150,7 +160,7 @@ async def remove(ctx, queueN):
     queueNumber = int(queueN)
     serverQueue = queues[ctx.guild.id]
 
-    deleteSong(serverQueue[queueNumber])
+    await deleteSong(serverQueue[queueNumber])
     serverQueue.pop(queueNumber)
 
 async def deleteSong(song: SongFile):
@@ -188,6 +198,7 @@ async def play(ctx, name, author):
     voice_channel = ctx.author.voice.channel
     
     while(len(queues[ctx.guild.id]) > 0):
+        skips[ctx.guild.id] = False
         print("trying my best to play", len(queues[ctx.guild.id]))
         try:
             # Connect to the voice channel
@@ -204,23 +215,35 @@ async def play(ctx, name, author):
             voice_client.play(audio_source)
 
             # Wait for the audio to finish playing or everyone else to leave, check every 1 second
-            while voice_client.is_playing() and len(voice_channel.members) > 1:
+            while voice_client.is_playing() and len(voice_channel.members) > 1 and not skips[ctx.guild.id]:
                 await asyncio.sleep(1)
+            print("done")
             # Disconnect from the voice channel after the audio finishes playing. 
             await voice_client.disconnect()
-            os.remove(nextSong.fileName)
-            queues[ctx.guild.id].pop(0)
+            await remove(ctx, 0)
             
         except Exception as e:
             print(e)
             await ctx.send("An error occurred while playing the audio.")
     
+
+skips = {}
+@bot.command(
+        help = "Skip current song"
+)
+async def skip(ctx):
+    await ctx.send("Skipping")
+    skips[ctx.guild.id] = True
+
 @bot.command(
         help = "Shows the songs in the queue"
 )
 async def queue(ctx):
     
     serverQueue = queues[ctx.guild.id]
+    if(len(serverQueue) == 0):
+        await ctx.send("Empty queue!")
+        return
     listMsg = "```"
     listMsg += "---------Now Playing----------- \n"
     listMsg += serverQueue[0].name + " - " + serverQueue[0].artist + "\n"

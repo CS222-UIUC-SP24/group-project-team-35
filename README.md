@@ -19,3 +19,10 @@ spotipy
 pandas
 asyncio
 
+
+#Developers:
+Darren Lin: Discord bot features
+Chris ___: __
+Jack ____: ____
+Jason ____:_____
+
