@@ -62,12 +62,16 @@ async def on_ready():
 @bot.command(
     help = "input a number between 1 and 20, and it will suggest that number of songs based on the server's taste profile"
 )
-async def dj(ctx, num):
+async def dj(ctx, numSongs):
     print("do dj stuff")
     #this is something like how it's gonna work
-    #suggestedSongs = spotifyTest.getSuggestions()
-    #for song in suggestedSongs:
-    #    await play(ctx, song['name'], song['artists'][0]['name'])
+    suggestions = spotifyTest.suggest(numSongs)
+    suggestedSongs = (suggestions)['tracks']
+    
+    print(suggestedSongs)
+    for song in suggestedSongs:
+        print("Suggesting ", song['name'], song['artists'][0]['name'])
+        await play(ctx, song['name'], song['artists'][0]['name'])
 
 @bot.command(
        help = "Plays from spotify. Search by song name and artist, separated by a comma" 
@@ -249,7 +253,7 @@ async def queue(ctx):
     listMsg += "---------Now Playing----------- \n"
     listMsg += serverQueue[0].name + " - " + serverQueue[0].artist + "\n"
     listMsg += "-------------------------------\n"
-    for i in range(1, min(10, len(serverQueue))):
+    for i in range(1, min(20, len(serverQueue))):
         listMsg += str(i) + ". " + serverQueue[i].name + " - " + serverQueue[i].artist
         listMsg += "\n"
     listMsg += "```"    
