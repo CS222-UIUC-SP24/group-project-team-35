@@ -87,7 +87,7 @@ def recursivePlaylistComparison(firstPlaylist, secondPlaylist, playListList, use
 
 
 
-def suggest():
+def suggest(numSongs):
     connection = sqlite3.connect(os.getenv("DATA_PATH"))
     c = connection.cursor()
     rows = c.execute('SELECT * FROM Songs')
@@ -108,7 +108,7 @@ def suggest():
         reccommendedArts.append(artist)
     for track, _ in topTracks: #underscore is just because im not using the second part of the tuples
         reccommendedTracks.append(track)
-    results = sp.recommendations(seed_artists= reccommendedArts, seed_tracks= reccommendedTracks, limit = 1) #Limit ranges from 1-100 and returns n amount of songs, so set as desired (such as if ur gonna queue n amount of songs from this function)
+    results = sp.recommendations(seed_artists= reccommendedArts, seed_tracks= reccommendedTracks, limit = numSongs) #Limit ranges from 1-100 and returns n amount of songs, so set as desired (such as if ur gonna queue n amount of songs from this function)
     connection.close()
     return results
 
