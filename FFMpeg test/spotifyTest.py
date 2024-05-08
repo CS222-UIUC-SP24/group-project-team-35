@@ -87,7 +87,7 @@ def recursivePlaylistComparison(firstPlaylist, secondPlaylist, playListList, use
 
 
 
-def suggest(numSongs):
+async def suggest(numSongs):
     connection = sqlite3.connect(os.getenv("DATA_PATH"))
     c = connection.cursor()
     rows = c.execute('SELECT * FROM Songs')

@@ -60,14 +60,16 @@ async def on_ready():
 
 
 @bot.command(
-    help = "input a number between 1 and 20, and it will suggest that number of songs based on the server's taste profile"
+    help = "input a number between 1 and 10, and it will suggest that number of songs based on the server's taste profile, ex: (!dj 5)"
 )
 async def dj(ctx, numSongs):
     print("do dj stuff")
     #this is something like how it's gonna work
-    suggestions = spotifyTest.suggest(numSongs)
+    suggestions = await spotifyTest.suggest(numSongs)
     suggestedSongs = (suggestions)['tracks']
     
+    for song in suggestedSongs:
+        print("Suggesting ", song['name'], song['artists'][0]['name'])
     print(suggestedSongs)
     for song in suggestedSongs:
         print("Suggesting ", song['name'], song['artists'][0]['name'])
@@ -144,7 +146,7 @@ async def stop(ctx):
     else: 
         await ctx.send("Not in a voice channel")
     for i in range(len(queues[ctx.guild.id])):
-        remove(ctx, 0)
+        await remove(ctx, 0)
 
 queues = {}
 
@@ -195,7 +197,7 @@ async def play(ctx, name, author, trackID = "", artistID = ""):
     addSong = SongFile(fileName, name, author, trackID, artistID)
 
     await addToQueue(addSong, ctx.guild)
-
+    
     if(len(queues[ctx.guild.id]) > 1):
         return
     # Get the voice channel of the user
@@ -225,11 +227,13 @@ async def play(ctx, name, author, trackID = "", artistID = ""):
             print("done")
             # Disconnect from the voice channel after the audio finishes playing. 
             await voice_client.disconnect()
-            await remove(ctx, 0)
             
         except Exception as e:
             print(e)
             await ctx.send("An error occurred while playing the audio.")
+        
+        await remove(ctx, 0)
+
     
 
 skips = {}
