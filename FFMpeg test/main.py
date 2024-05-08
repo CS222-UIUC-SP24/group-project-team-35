@@ -118,7 +118,7 @@ async def playSpotify(ctx, *, search:str):
             await interaction.response.send_message(f"Ok you selected {(select.values[0])[3:]}!")
             songChoiceIndex = int(select.values[0][0]) - 1
             songChoice = spotipySongs[songChoiceIndex]
-            await play(ctx, songChoice['name'], songChoice['artists'][0]['name'])
+            await play(ctx, songChoice['name'], songChoice['artists'][0]['name'], songChoice['id'], songChoice['artists'][0]['id'])
             
             #could add to database here. would be helpful, while I still have the spotipy stuff
     
@@ -145,7 +145,7 @@ async def stop(ctx):
 queues = {}
 
 
-SongFile = namedtuple('SongFile', ['fileName', 'name', 'artist'])
+SongFile = namedtuple('SongFile', ['fileName', 'name', 'artist', 'trackID', 'artistID'])
 #currently no artist, will fill in when spotipy works good
 async def addToQueue(song: SongFile, guild):
     if(not guild.id in queues):
@@ -172,10 +172,10 @@ async def deleteSong(song: SongFile):
         help = "Searches youtube directly."
 )
 async def playYT(ctx, *, search):
-    await   play(ctx, search, "")
+    await   play(ctx, search, "", "", "")
     
     
-async def play(ctx, name, author):
+async def play(ctx, name, author, trackID, artistID):
     # Check if the user is in a voice channel
     if ctx.author.voice is None:
         await ctx.send("You need to be in a voice channel to use this command.")
@@ -188,7 +188,7 @@ async def play(ctx, name, author):
     #searches on youtube with the full name, and downloads it
     link, fileName = await download(fullName) 
     
-    addSong = SongFile(fileName, name, author)
+    addSong = SongFile(fileName, name, author, trackID, artistID)
 
     await addToQueue(addSong, ctx.guild)
 
@@ -205,7 +205,7 @@ async def play(ctx, name, author):
             nextSong = queues[ctx.guild.id][0]
             
             #at this point, I'd probably make a call to add this song to the database
-            Music_Database.insert_row(c, "Songs", (nextSong.artist,  nextSong.name))
+            Music_Database.insert_row(c, "Songs", (nextSong.artistID, nextSong.trackID))
             print("The song is:", nextSong.artist, nextSong.name)
             connection.commit()
             voice_client = await voice_channel.connect()
