@@ -60,9 +60,9 @@ async def on_ready():
 
 
 @bot.command(
-    help = "Suggest"
+    help = "input a number between 1 and 20, and it will suggest that number of songs based on the server's taste profile"
 )
-async def dj(ctx):
+async def dj(ctx, num):
     print("do dj stuff")
     #this is something like how it's gonna work
     #suggestedSongs = spotifyTest.getSuggestions()
@@ -172,10 +172,10 @@ async def deleteSong(song: SongFile):
         help = "Searches youtube directly."
 )
 async def playYT(ctx, *, search):
-    await   play(ctx, search, "", "", "")
+    await   play(ctx, search, "")
     
-    
-async def play(ctx, name, author, trackID, artistID):
+#if trackID isn't inputted, it won't get added to the database
+async def play(ctx, name, author, trackID = "", artistID = ""):
     # Check if the user is in a voice channel
     if ctx.author.voice is None:
         await ctx.send("You need to be in a voice channel to use this command.")
@@ -205,7 +205,8 @@ async def play(ctx, name, author, trackID, artistID):
             nextSong = queues[ctx.guild.id][0]
             
             #at this point, I'd probably make a call to add this song to the database
-            Music_Database.insert_row(c, "Songs", (nextSong.artistID, nextSong.trackID))
+            if(nextSong.artistID != ""):
+                Music_Database.insert_row(c, "Songs", (nextSong.artistID, nextSong.trackID))
             print("The song is:", nextSong.artist, nextSong.name)
             connection.commit()
             voice_client = await voice_channel.connect()
