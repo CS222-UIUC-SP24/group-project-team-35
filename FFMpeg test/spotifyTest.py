@@ -97,24 +97,20 @@ def suggest():
     for song in rows:
         artists[song[0]] += 1
         tracks[song[1]] += 1
-        
-    
-    """for song in rows:
-        if song[0] not in artists:
-            artists.append(song[0])
-        if song[1] not in tracks:
-            tracks.append(song[1])"""
 
-    for artist, count in artists.items():
-        print(f"{artist}: {count}")
-    for track, count in tracks.items():
-        print(f"{track}: {count}")
+    artists = sorted(artists.items(), key=lambda item: item[1])
+    tracks = sorted(tracks.items(), key=lambda item: item[1]) # lambda tells my sorting function that I want to sort by the second part of the tuple (the value, instead of the key)
+    topArtists = artists[:5] 
+    topTracks = tracks[:5]
+    reccommendedArts = []
+    reccommendedTracks = []
+    for artist, _ in topArtists:
+        reccommendedArts.append(artist)
+    for track, _ in topTracks: #underscore is just because im not using the second part of the tuples
+        reccommendedTracks.append(track)
+    results = sp.recommendations(seed_artists= reccommendedArts, seed_tracks= reccommendedTracks, limit = 1) #Limit ranges from 1-100 and returns n amount of songs, so set as desired (such as if ur gonna queue n amount of songs from this function)
     connection.close()
-    
-
-
-#suggest()
-
+    return results
 
 
     
