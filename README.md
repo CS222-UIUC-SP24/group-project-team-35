@@ -27,7 +27,7 @@ to download all required libraries
 
 then, invite the bot to your server of choice with the invite link: https://discord.com/oauth2/authorize?client_id=1209407473203810324&permissions=8&scope=bot
 
-after getting the bot in your server, run ```ffmpeg/main.py``` to start up the bot locally in your enviornment 
+after getting the bot in your server, run ```FFMpeg test/main.py``` to start up the bot locally in your enviornment 
 
 Afterwords, you'll be able to run commands using '!' as a prefix. To see all commands available, run ```!help``` inside of your command channel (whichever text channel(s) you designate for bot commands) to get a list of all commands with a short description of their functions
 
