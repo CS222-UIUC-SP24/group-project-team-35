@@ -6,7 +6,7 @@ DiscoDJ is a Discord bot that utilizes the Spotify Web API to look up, play, and
 
 ![team35Graph](https://github.com/CS222-UIUC-SP24/group-project-team-35/assets/115494515/b52e4edc-8ee2-454f-a204-f03f1211a4ef)
 
-Our graphs shows the architecture of our product from user input back to a song response, and is elaborated on within our presentation.
+Our graph shows the architecture of our product from user input back to a song response, and is elaborated on within our presentation.
 
 
 # Developers:
