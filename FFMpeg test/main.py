@@ -53,10 +53,15 @@ yt_opts = {
 
 @bot.event  
 async def on_ready():
-    print("ready. Deleting all previous files")
-    shutil.rmtree("songs")
-    
-    os.makedirs("songs")
+    songs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'songs')
+
+    if os.path.exists(songs_path):
+        shutil.rmtree(songs_path)
+        print("The 'songs' directory has been deleted.")
+    else:
+        print("The 'songs' directory does not exist.")
+    os.makedirs(songs_path)
+    print("The 'songs' directory has been created.")
 
 
 @bot.command(
